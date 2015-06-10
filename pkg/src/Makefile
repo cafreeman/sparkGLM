@@ -11,7 +11,8 @@ RESOURCE_FILES := $(wildcard $(RESOURCE_DIR)/*)
 
 $(SBT_TARGET_NAME): build.sbt $(SCALA_FILES) 
 	./sbt/sbt assembly
-	cp -f $(SBT_TARGET_NAME) ../inst/
+	mkdir ../inst
+	cp -fp $(SBT_TARGET_NAME) ../inst/
 
 clean:
 	sbt clean
