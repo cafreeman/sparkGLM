@@ -20,7 +20,7 @@ install-scala: build.sbt $(SCALA_FILES) $(RESOURCE_FILES)
 	./build/sbt assembly
 
 install-R:
-	cp -f $(SBT_TARGET_NAME) R/pkg/inst
+	cp -f $(SBT_TARGET_NAME) R/pkg/inst/
 	mkdir -p $(LIB_DIR)
 	R CMD INSTALL --library=$(LIB_DIR) R/pkg/
 
