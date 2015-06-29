@@ -1,2 +1,2 @@
-import(SparkR)
+#import(SparkR)
 export("helloWorldTest")
