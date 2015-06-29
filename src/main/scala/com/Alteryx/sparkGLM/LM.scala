@@ -41,13 +41,13 @@ object LM {
       X: RowPartitionedMatrix,
       Y: RowPartitionedMatrix): (DenseMatrix[Double], DenseMatrix[Double])  = {
     val XY = X.rdd.zip(Y.rdd).map(x => (x._1.mat, x._2.mat))
-    val ATA_ATb = XY.map { part =>
+    val XtX_Xty = XY.map { part =>
       (part._1.t * part._1, part._1.t * part._2)
     }
 
       val treeBranchingFactor = X.rdd.context.getConf.getInt("spark.mlmatrix.treeBranchingFactor", 2).toInt
-      val depth = math.ceil(math.log(ATA_ATb.partitions.size)/math.log(treeBranchingFactor)).toInt
-      val reduced = edu.berkeley.cs.amplab.mlmatrix.util.Utils.treeReduce(ATA_ATb, utils.reduceNormal, depth=depth)
+      val depth = math.ceil(math.log(XtX_Xty.partitions.size)/math.log(treeBranchingFactor)).toInt
+      val reduced = edu.berkeley.cs.amplab.mlmatrix.util.Utils.treeReduce(XtX_Xty, utils.reduceNormal, depth=depth)
 
       reduced
   }
@@ -215,6 +215,7 @@ object LM {
   // for getting p-values from various distributions don't really exist. There seems
   // to be a way to get a chi-square statistic via MLlib, but we aren't sure what
   // is being called under the hood. Likely the Apache Commons Java Math classes.
+  // Actually, no: val pValue = 1 - StudentsT(200.0).cdf(1.9)
   def summary(obj: LM) = {
     val adjR2 = 1.0 - (((1.0 - obj.r2)*(obj.nrow - 1.0))/(obj.nrow - obj.xnames.size - 1.0))
     val dfm = obj.xnames.size - 1
