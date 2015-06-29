@@ -12,7 +12,8 @@ lazy val commonSettings = Seq(
 lazy val root = (project in file(".")).
   settings(commonSettings: _*).
   settings(
-    spName := "Alteryx/sparkGLM",
+    name := "sparkGLM",
+    spName := "Alteryx/" + name.value,
     version := "0.0.1",
     sparkComponents ++= Seq("sql", "mllib"),
     libraryDependencies ++= Seq(
@@ -37,11 +38,13 @@ lazy val root = (project in file(".")).
 //
 // hello := println("Hello World")
 
-lazy val distPackage = taskKey[Unit]("Compile an R package using R CMD INSTALL")
+// lazy val distPackage = taskKey[Unit]("Compile an R package using R CMD INSTALL")
+//
+// distPackage := {
+//   sbt assembly
+// }
 
-distPackage := {
-  sbt assembly
-}
+assemblyJarName in assembly := name.value + "-assembly-" + version.value + ".jar"
 
 assemblyMergeStrategy in assembly := {
     case PathList("javax", "servlet", xs @ _*)              => MergeStrategy.first
