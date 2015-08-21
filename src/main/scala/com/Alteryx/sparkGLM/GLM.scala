@@ -622,6 +622,7 @@ object GLM {
       "The two DataFrames must have the same number of rows")
     require(y.columns.size == 1,
       "The 'y' DataFrame must have only one column")
+    println("basic fit method")
     val tol = 1e-6
     val verbose = false
     val npart = x.rdd.partitions.size
