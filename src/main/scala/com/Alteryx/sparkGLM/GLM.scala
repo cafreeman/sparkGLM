@@ -417,6 +417,7 @@ object GLM {
       m: RowPartitionedMatrix,
       verbose: Boolean = false): PreGLM = {
     // Initialize values
+    println("fitMultipleBinomial start")
     val ySums = ym.rdd.map(y => breeze.linalg.sum(y.mat(::, 0)))
     val nrow = ym.getDim._1
     val npart = xm.rdd.partitions.size
@@ -427,6 +428,7 @@ object GLM {
       case(a, b) => (a.mat, b.mat)
     }
     var eta1 = if(link == "logit"){
+        println("logit")
         muM.map { part =>
           linkLogit(part._1, part._2)
         }
@@ -445,6 +447,7 @@ object GLM {
     var devOld = dev
     var deltad = 1.0
     var iter = 0
+    println(iter)
     var zw = new ZWobj(z = uno, w = uno)
     var grad = uno
     var mod = new utils.WLSObj(utils.repValue(0.0, 2), DenseVector(0.0, 0.0))
@@ -458,6 +461,7 @@ object GLM {
       dev = createBinomialDeviance(ym, mu, m)
       deltad = dev - devOld
       iter = iter + 1
+      println(iter)
       if(verbose) println(iter.toString + "\t" + deltad.toString)
     }
     // Calculate the model summary statistics
@@ -567,6 +571,7 @@ object GLM {
           link: String,
           tol: Double,
           verbose: Boolean): PreGLM = {
+        println("fitmultiple start")
         // Construct the "uno" field", a field of 1.0 values that maintains
         // the data partitioning, and be used as the bases for creating
         // needed initial values in the GLM algorithm
@@ -584,8 +589,10 @@ object GLM {
         }
         val offset = RowPartitionedMatrix.fromMatrix(offset1)
         val components = if (family == "Binomial") {
+            println("fitmultipleBinomial")
             fitMultipleBinomial(ym, xm, uno, link, tol, offset, m, verbose)
           }else{
+            println("fitmultipleMultinomial")
             fitMultipleBinomial(ym, xm, uno, link, tol, offset, m, verbose)
           }
         components
@@ -611,8 +618,10 @@ object GLM {
     val verbose = false
     val npart = x.rdd.partitions.size
     val components = if (npart == 1) {
+        println("fitsingle")
         fitSingle(y, x, family, link, tol, verbose)
       }else{
+        println("fitMultiple")
         fitMultiple(y, x, family, link, tol, verbose)
       }
     createObj(x, y, components, family, link)
