@@ -40,6 +40,7 @@ object utils {
 
   // Convert a single partitioned DataFrame into a DenseMatrix
   def dfToDenseMatrix(df: DataFrame): DenseMatrix[Double] = {
+    println("dftodensematrix")
     require(df.rdd.partitions.size == 1,
       "The DataFrame must be in a single partition")
     require(df.dtypes.forall(_._2 == "DoubleType"),

@@ -195,6 +195,7 @@ object GLM {
   def lPrimeLogit(
       mu: DenseMatrix[Double],
       m: DenseMatrix[Double]): DenseMatrix[Double] = {
+        println("lPrimelogit")
     m :/ (mu :* (m :+ (-1.0 :* mu)))
   }
   def unlinkLogit(
@@ -259,11 +260,14 @@ object GLM {
       offset: DenseMatrix[Double],
       m: DenseMatrix[Double],
       verbose: Boolean = false): PreGLM = {
+    println("fitsingleBinomial")
     // Initialize values
     var mu = utils.repValue(breeze.linalg.sum(ym(::, 0))/ym.rows.toDouble, ym.rows)
     var eta = if(link == "logit"){
+      println("logit")
         linkLogit(mu, m)
       }else if(link == "probit"){
+      println("probit")
         linkProbit(mu, m)
       }else{
         linkCloglog(mu, m)
@@ -280,6 +284,7 @@ object GLM {
     // The IRLS iterations
     while(scala.math.abs(deltad) > tol){
       grad = if(link == "logit"){
+        println("IRLS logit")
           lPrimeLogit(mu, m)
         }else if(link == "probit"){
           lPrimeProbit(mu, m)
@@ -480,6 +485,7 @@ object GLM {
       link: String,
       tol: Double,
       verbose: Boolean): PreGLM = {
+    println("start fitsingle")
     // Convert the DataFrames to DenseMatrix objects
     val xm = utils.dfToDenseMatrix(x)
     val ym = utils.dfToDenseMatrix(y)
@@ -488,8 +494,10 @@ object GLM {
     // The default offsets
     val offset = utils.repValue(0.0, ym.rows)
     val components = if (family == "Binomial") {
+        println("fitsinglebinomial")
         fitSingleBinomial(ym, xm, link, tol, offset, m, verbose)
       }else{
+        println("fitsinglemultinomial")
         fitSingleBinomial(ym, xm, link, tol, offset, m, verbose)
       }
     components
