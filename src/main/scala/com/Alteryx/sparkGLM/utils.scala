@@ -72,11 +72,15 @@ object utils {
       X: DenseMatrix[Double],
       y: DenseMatrix[Double],
       w: DenseMatrix[Double]): WLSObj = {
+    println("wls single")
     val W = diag(w.toDenseVector)
+    println("wls single - starting x'x-1")
     val XtWXi = inv(X.t * W * X)
     val XtWy = X.t * W * y
     val coefs = XtWXi * XtWy
+    println("wls single - diag design")
     val diagDesign = sqrt(diag(XtWXi))
+    println("create WLSOBJ")
     new WLSObj(coefs = coefs, diagDesign = diagDesign)
   }
 
