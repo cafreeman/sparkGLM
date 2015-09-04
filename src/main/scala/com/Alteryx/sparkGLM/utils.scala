@@ -63,6 +63,21 @@ object utils {
     a
   }
 
+  // A method to multiple a left-hand side matrix by a diagonal matrix
+  // without actually creating the diagnol matrix that may not fit into memory
+  def leftMultDiag(
+    left: DenseMatrix[Double],
+    dcol: DenseMatrix[Double]): DenseMatrix[Double] = {
+      require(dcol.cols == 1,
+        "The argument dcol must contain only a single column")
+      val nCols = left.cols - 1
+      val dcolArray = dcol.toArray
+      val newLeft = new DenseMatrix(left.rows, left.cols, left.toArray)
+      for (i <- 0 to nCols) {
+        newLeft(::, i) :*= dcolArray(i)
+      }
+      newLeft
+  }
   // A case class for a minimal weighted least squares fit object
   case class WLSObj(coefs: DenseMatrix[Double], diagDesign: DenseVector[Double])
 
@@ -71,9 +86,9 @@ object utils {
       X: DenseMatrix[Double],
       y: DenseMatrix[Double],
       w: DenseMatrix[Double]): WLSObj = {
-    val W = diag(w.toDenseVector)
-    val XtWXi = inv(X.t * W * X)
-    val XtWy = X.t * W * y
+    val XtW = leftMultDiag(X.t, w)
+    val XtWXi = inv(XtW * X)
+    val XtWy = XtW * y
     val coefs = XtWXi * XtWy
     val diagDesign = sqrt(diag(XtWXi))
     new WLSObj(coefs = coefs, diagDesign = diagDesign)
@@ -88,8 +103,8 @@ object utils {
       case((a, b), c) => (a.mat, b.mat, c.mat)
     }
     val XtWX_XtWy = Xyw.map { part =>
-      (part._1.t * diag(part._3.toDenseVector) * part._1,
-        part._1.t * diag(part._3.toDenseVector) * part._2)
+      (leftMultDiag(part._1.t, part._3) * part._1,
+        leftMultDiag(part._1.t, part._3) * part._2)
     }
 
     val treeBranchingFactor = X.rdd.context.getConf.getInt("spark.mlmatrix.treeBranchingFactor", 2).toInt
