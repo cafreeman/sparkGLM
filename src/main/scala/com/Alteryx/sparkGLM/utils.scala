@@ -78,6 +78,19 @@ object utils {
       }
       newLeft
   }
+
+  // A method to calculate the partion level components. This avoids the need to
+  // calculate XtW twice on each partition
+  def partitionComponents (
+      X: DenseMatrix[Double],
+      y: DenseMatrix[Double],
+      w: DenseMatrix[Double]): (DenseMatrix[Double], DenseMatrix[Double]) = {
+    val XtW = leftMultDiag(X.t, w)
+    val XtWX = XtW * X
+    val XtWy = XtW*y
+    (XtWX, XtWy)
+  }
+
   // A case class for a minimal weighted least squares fit object
   case class WLSObj(coefs: DenseMatrix[Double], diagDesign: DenseVector[Double])
 
@@ -86,10 +99,9 @@ object utils {
       X: DenseMatrix[Double],
       y: DenseMatrix[Double],
       w: DenseMatrix[Double]): WLSObj = {
-    val XtW = leftMultDiag(X.t, w)
-    val XtWXi = inv(XtW * X)
-    val XtWy = XtW * y
-    val coefs = XtWXi * XtWy
+    val parts = partitionComponents(X, y, w)
+    val XtWXi = inv(parts._1)
+    val coefs = XtWXi * parts._2
     val diagDesign = sqrt(diag(XtWXi))
     new WLSObj(coefs = coefs, diagDesign = diagDesign)
   }
@@ -103,8 +115,7 @@ object utils {
       case((a, b), c) => (a.mat, b.mat, c.mat)
     }
     val XtWX_XtWy = Xyw.map { part =>
-      (leftMultDiag(part._1.t, part._3) * part._1,
-        leftMultDiag(part._1.t, part._3) * part._2)
+      partitionComponents(part._1, part._2, part._3)
     }
 
     val treeBranchingFactor = X.rdd.context.getConf.getInt("spark.mlmatrix.treeBranchingFactor", 2).toInt
